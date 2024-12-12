@@ -1,0 +1,18 @@
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v1/api-docs
+  swagger-ui:
+    enabled: true
+    path: /v1/swagger-ui
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      enabled: true
+      probes:
+        enabled: true
