@@ -12,10 +12,17 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.openssl.PEMParser;
@@ -56,6 +63,21 @@ public class ParserService {
             String dnQualifier = getAttributeFromName(req.getSubject(), dnQualifierId);
             String emailAddress = getAttributeFromName(req.getSubject(), emailAddressId);
 
+            String subjectAlternativeName = null;
+
+            Attribute[] extensions = req.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+            if (extensions != null && extensions.length > 0) {
+                ASN1Encodable[] values = extensions[0].getAttributeValues();
+                if (values != null && values.length > 0) {
+                    Extensions ext = Extensions.getInstance(values[0]);
+                    GeneralNames names = GeneralNames.fromExtensions(ext, Extension.subjectAlternativeName);
+
+                    subjectAlternativeName = Arrays.stream(names.getNames())
+                            .map(this::generalNameToString)
+                            .collect(Collectors.joining(", "));
+                }
+            }
+
             var builder = CsrDetailsModel.builder()
                     .signatureAlgorithm(finder.getAlgorithmName(req.getSignatureAlgorithm()))
                     .signatureAlgorithmId(
@@ -73,12 +95,22 @@ public class ParserService {
                     .organizationName(organizationName)
                     .organizationUnit(organizationUnit)
                     .dnQualifier(dnQualifier)
+                    .subjectAlternativeName(subjectAlternativeName)
                     .emailAddress(emailAddress);
 
             AsymmetricKeyParameter keyParameter = PublicKeyFactory.createKey(req.getSubjectPublicKeyInfo());
 
             if (keyParameter instanceof RSAKeyParameters rsaKeyParameters) {
                 builder.rsaKeyLength(rsaKeyParameters.getModulus().bitLength());
+            }
+
+            if (keyParameter instanceof ECPublicKeyParameters ecPublicKeyParameters) {
+                System.out.println("Curve: "
+                        + ecPublicKeyParameters
+                                .getParameters()
+                                .getCurve()
+                                .getClass()
+                                .getSimpleName());
             }
 
             return builder.build();
@@ -92,6 +124,30 @@ public class ParserService {
         String result = Arrays.stream(name.getRDNs(attributeId))
                 .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
                 .map(attribute -> attribute.getValue().toString())
+                .collect(Collectors.joining(","));
+
+        if (result == null || result.isBlank()) {
+            return null;
+        }
+
+        return result;
+    }
+
+    public String generalNameToString(GeneralName name) {
+        String tag =
+                switch (name.getTagNo()) {
+                    case GeneralName.iPAddress -> "IP";
+                    case GeneralName.dNSName -> "DNS";
+                    default -> Integer.toString(name.getTagNo());
+                };
+
+        return tag + ": " + name.getName();
+    }
+
+    public String getAttributeFromRequest(PKCS10CertificationRequest request, ASN1ObjectIdentifier attributeId) {
+        String result = Arrays.stream(request.getAttributes(attributeId))
+                .flatMap(attr -> Arrays.stream(attr.getAttributeValues()))
+                .map(value -> value.toString())
                 .collect(Collectors.joining(","));
 
         if (result == null || result.isBlank()) {

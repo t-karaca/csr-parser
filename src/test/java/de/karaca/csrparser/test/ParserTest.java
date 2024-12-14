@@ -98,6 +98,28 @@ public class ParserTest {
     }
 
     @Test
+    void testSAN() throws Exception {
+        try (InputStream inputStream = new FileInputStream("src/test/resources/rsa-csr-san.pem")) {
+            CsrDetailsModel model = parserService.parseWithBouncyCastle(inputStream.readAllBytes());
+
+            assertThat(model.getCommonName()).isEqualTo("example.com");
+            assertThat(model.getCountry()).isEqualTo("DE");
+            assertThat(model.getStateOrProvince()).isEqualTo("NRW");
+            assertThat(model.getOrganizationName()).isEqualTo("Internet Widgits Pty Ltd");
+            assertThat(model.getOrganizationUnit()).isNull();
+
+            // BouncyCastle does not provide a name for id-ecPublicKey
+            assertThat(model.getPublicKeyAlgorithm()).isEqualTo("RSA");
+            assertThat(model.getSignatureAlgorithm()).isEqualTo("SHA256WITHRSA");
+            assertThat(model.getRsaKeyLength()).isEqualTo(4096);
+
+            assertThat(model.getSubjectAlternativeName()).isEqualTo("DNS: test.com, DNS: test.de");
+
+            assertThat(model.getEmailAddress()).isNull();
+        }
+    }
+
+    @Test
     void testInvalidCsr() throws Exception {
         try (InputStream inputStream = new FileInputStream("src/test/resources/ec-private-key.pem")) {
             assertThatExceptionOfType(InvalidCsrException.class)

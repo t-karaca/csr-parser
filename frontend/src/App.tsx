@@ -202,6 +202,12 @@ function App() {
                                         <TableCell>{csrDetails.organizationUnit}</TableCell>
                                     </TableRow>
                                 )}
+                                {csrDetails.subjectAlternativeName && (
+                                    <TableRow>
+                                        <TableCell>Subject Alternative Name</TableCell>
+                                        <TableCell>{csrDetails.subjectAlternativeName}</TableCell>
+                                    </TableRow>
+                                )}
                                 {csrDetails.emailAddress && (
                                     <TableRow>
                                         <TableCell>Email Address</TableCell>
