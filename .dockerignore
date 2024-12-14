@@ -1,0 +1,9 @@
+.gradle/
+.settings/
+bin/
+build/
+frontend/node_modules/
+logs/
+.classpath
+.factorypath
+.project
