@@ -15,4 +15,49 @@ management:
     health:
       enabled: true
       probes:
+        # liveness and readiness probes
         enabled: true
+
+logging:
+  path: ./logs
+  file: csr-parser.log
+  level:
+    de.karaca: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: json-log
+  main:
+    banner-mode: log
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+
+# actuator can be "hidden" from public by only exposing the main server port with an ingress or api gateway
+# while kubernetes can still do health checks on the management port
+management:
+  server:
+    base-path: "/"
+    port: 8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+
+# disable swagger-ui on production
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# disable debug logging on production
+logging:
+  level:
+    de.karaca: INFO

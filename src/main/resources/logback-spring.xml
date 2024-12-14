@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+    <springProperty name="loggingPath" source="logging.path" defaultValue="logs" />
+    <springProperty name="loggingFile" source="logging.file" defaultValue="csr-parser.log" />
+    <property name="LOG_FILE" value="${loggingPath}/${loggingFile}"/>
+    <property name="JSON_LOG_FILE" value="${loggingPath}/json-${loggingFile}"/>
+
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
+
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+    <appender name="json-console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
+    <appender name="json-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${JSON_LOG_FILE}</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOGBACK_ROLLINGPOLICY_FILE_NAME_PATTERN:-${JSON_LOG_FILE}.%d{yyyy-MM-dd}.%i.gz}</fileNamePattern>
+            <cleanHistoryOnStart>${LOGBACK_ROLLINGPOLICY_CLEAN_HISTORY_ON_START:-false}</cleanHistoryOnStart>
+            <maxFileSize>${LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE:-10MB}</maxFileSize>
+            <totalSizeCap>${LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP:-0}</totalSizeCap>
+            <maxHistory>${LOGBACK_ROLLINGPOLICY_MAX_HISTORY:-7}</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <springProfile name="json-log">
+        <root level="INFO">
+            <appender-ref ref="json-console" />
+            <appender-ref ref="json-file" />
+        </root>
+    </springProfile>
+
+    <springProfile name="!json-log">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+</configuration>
