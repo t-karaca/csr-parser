@@ -1,10 +1,10 @@
 springdoc:
   api-docs:
     enabled: true
-    path: /v1/api-docs
+    path: /api/v1/api-docs
   swagger-ui:
     enabled: true
-    path: /v1/swagger-ui
+    path: /api/v1/swagger-ui
 
 management:
   endpoints:
