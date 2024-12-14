@@ -7,6 +7,8 @@ The React frontend is built using Vite, TypeScript, shadcn ui and Tailwind CSS.
 
 The frontend is available at http://localhost:8080
 
+Files can be uploaded with a file picker dialog or by drag and dropping to the browser.
+
 Swagger UI is available at http://localhost:8080/api/v1/swagger-ui
 
 ## Gradle Build
