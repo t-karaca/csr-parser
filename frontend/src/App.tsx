@@ -26,8 +26,17 @@ function App() {
 
     // initialize file drag and drop
     useEffect(() => {
+        let dragCounter = 0;
+
+        const dragEnter = () => {
+            dragCounter++;
+        };
+
         const dragLeave = () => {
-            setShowDropzone(false);
+            dragCounter--;
+            if (dragCounter == 0) {
+                setShowDropzone(false);
+            }
         };
 
         const dragOver = (e: DragEvent) => {
@@ -36,6 +45,7 @@ function App() {
         };
 
         const drop = (e: DragEvent) => {
+            dragCounter = 0;
             setShowDropzone(false);
             e.preventDefault();
 
@@ -48,11 +58,13 @@ function App() {
             }
         };
 
+        document.addEventListener("dragenter", dragEnter);
         document.addEventListener("dragleave", dragLeave);
         document.addEventListener("dragover", dragOver);
         document.addEventListener("drop", drop);
 
         return () => {
+            document.removeEventListener("dragenter", dragEnter);
             document.removeEventListener("dragleave", dragLeave);
             document.removeEventListener("dragover", dragOver);
             document.removeEventListener("drop", drop);
