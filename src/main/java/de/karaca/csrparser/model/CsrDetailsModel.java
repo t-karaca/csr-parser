@@ -22,7 +22,6 @@ public class CsrDetailsModel {
     private final String stateOrProvince;
     private final String organizationName;
     private final String organizationUnit;
-    private final String dnQualifier;
     private final String subjectAlternativeName;
     private final String emailAddress;
 }

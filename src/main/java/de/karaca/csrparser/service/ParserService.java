@@ -32,6 +32,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ParserService {
+    private final String INVALID_CSR_MESSAGE = "File is not a valid Certificate Signing Request";
+
+    private final ASN1ObjectIdentifier OID_COMMON_NAME = new ASN1ObjectIdentifier("2.5.4.3");
+    private final ASN1ObjectIdentifier OID_COUNTRY = new ASN1ObjectIdentifier("2.5.4.6");
+    private final ASN1ObjectIdentifier OID_LOCALITY = new ASN1ObjectIdentifier("2.5.4.7");
+    private final ASN1ObjectIdentifier OID_STATE_OR_PROVINCE = new ASN1ObjectIdentifier("2.5.4.8");
+    private final ASN1ObjectIdentifier OID_ORGANIZATION_NAME = new ASN1ObjectIdentifier("2.5.4.10");
+    private final ASN1ObjectIdentifier OID_ORGANIZATION_UNIT = new ASN1ObjectIdentifier("2.5.4.11");
+    private final ASN1ObjectIdentifier OID_EMAIL_ADDRESS = PKCSObjectIdentifiers.pkcs_9_at_emailAddress;
+
     private static final Charset PEM_CHARSET = StandardCharsets.US_ASCII;
 
     private static final byte[] PEM_HEADER = "-----BEGIN CERTIFICATE REQUEST-----".getBytes(PEM_CHARSET);
@@ -45,23 +55,13 @@ public class ParserService {
 
             DefaultAlgorithmNameFinder finder = new DefaultAlgorithmNameFinder();
 
-            var commonNameId = new ASN1ObjectIdentifier("2.5.4.3");
-            var countryId = new ASN1ObjectIdentifier("2.5.4.6");
-            var localityId = new ASN1ObjectIdentifier("2.5.4.7");
-            var stateOrProvinceId = new ASN1ObjectIdentifier("2.5.4.8");
-            var organizationNameId = new ASN1ObjectIdentifier("2.5.4.10");
-            var organizationUnitId = new ASN1ObjectIdentifier("2.5.4.11");
-            var dnQualifierId = new ASN1ObjectIdentifier("2.5.4.46");
-            var emailAddressId = PKCSObjectIdentifiers.pkcs_9_at_emailAddress;
-
-            String commonName = getAttributeFromName(req.getSubject(), commonNameId);
-            String country = getAttributeFromName(req.getSubject(), countryId);
-            String locality = getAttributeFromName(req.getSubject(), localityId);
-            String stateOrProvince = getAttributeFromName(req.getSubject(), stateOrProvinceId);
-            String organizationName = getAttributeFromName(req.getSubject(), organizationNameId);
-            String organizationUnit = getAttributeFromName(req.getSubject(), organizationUnitId);
-            String dnQualifier = getAttributeFromName(req.getSubject(), dnQualifierId);
-            String emailAddress = getAttributeFromName(req.getSubject(), emailAddressId);
+            String commonName = getAttributeFromName(req.getSubject(), OID_COMMON_NAME);
+            String country = getAttributeFromName(req.getSubject(), OID_COUNTRY);
+            String locality = getAttributeFromName(req.getSubject(), OID_LOCALITY);
+            String stateOrProvince = getAttributeFromName(req.getSubject(), OID_STATE_OR_PROVINCE);
+            String organizationName = getAttributeFromName(req.getSubject(), OID_ORGANIZATION_NAME);
+            String organizationUnit = getAttributeFromName(req.getSubject(), OID_ORGANIZATION_UNIT);
+            String emailAddress = getAttributeFromName(req.getSubject(), OID_EMAIL_ADDRESS);
 
             String subjectAlternativeName = null;
 
@@ -94,7 +94,6 @@ public class ParserService {
                     .stateOrProvince(stateOrProvince)
                     .organizationName(organizationName)
                     .organizationUnit(organizationUnit)
-                    .dnQualifier(dnQualifier)
                     .subjectAlternativeName(subjectAlternativeName)
                     .emailAddress(emailAddress);
 
@@ -144,19 +143,6 @@ public class ParserService {
         return tag + ": " + name.getName();
     }
 
-    public String getAttributeFromRequest(PKCS10CertificationRequest request, ASN1ObjectIdentifier attributeId) {
-        String result = Arrays.stream(request.getAttributes(attributeId))
-                .flatMap(attr -> Arrays.stream(attr.getAttributeValues()))
-                .map(value -> value.toString())
-                .collect(Collectors.joining(","));
-
-        if (result == null || result.isBlank()) {
-            return null;
-        }
-
-        return result;
-    }
-
     public PKCS10CertificationRequest readPKCS10(byte[] bytes) {
         if (bytes.length >= PEM_HEADER.length
                 && Arrays.equals(bytes, 0, PEM_HEADER.length, PEM_HEADER, 0, PEM_HEADER.length)) {
@@ -167,7 +153,7 @@ public class ParserService {
             try (PEMParser parser = new PEMParser(new StringReader(csr))) {
                 return (PKCS10CertificationRequest) parser.readObject();
             } catch (IOException e) {
-                throw new InvalidCsrException("File is not a valid Certificate Signing Request", e);
+                throw new InvalidCsrException(INVALID_CSR_MESSAGE, e);
             }
         }
 
@@ -175,7 +161,7 @@ public class ParserService {
             // file is in DER format
             return new PKCS10CertificationRequest(bytes);
         } catch (IOException e) {
-            throw new InvalidCsrException("File is not a valid Certificate Signing Request", e);
+            throw new InvalidCsrException(INVALID_CSR_MESSAGE, e);
         }
     }
 

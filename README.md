@@ -9,6 +9,8 @@ The frontend is available at http://localhost:8080
 
 Files can be uploaded with a file picker dialog or by drag and dropping to the browser.
 
+Some test files created with OpenSSL are available at `src/test/resources`.
+
 Swagger UI is available at http://localhost:8080/api/v1/swagger-ui
 
 ## Gradle Build

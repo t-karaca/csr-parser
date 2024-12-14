@@ -14,7 +14,6 @@ export interface CsrDetailsModel {
     stateOrProvince?: string;
     organizationName?: string;
     organizationUnit?: string;
-    dnQualifier?: string;
     subjectAlternativeName?: string;
     emailAddress?: string;
 }
