@@ -139,14 +139,17 @@ function App() {
                         </Label>
                     </div>
                     <Separator className="my-8" />
-                    {!file && <div>No file selected</div>}
-                    {file && <div>{file.name}</div>}
+                    <div data-testid="filename">{!file ? "No file selected" : file.name}</div>
                     {error && (
                         <Alert variant="destructive">
                             <AlertTitle>
                                 {error.status} {error.statusText}
                             </AlertTitle>
-                            {error.message && <AlertDescription>{error.message}</AlertDescription>}
+                            {error.message && (
+                                <AlertDescription data-testid="error-message">
+                                    {error.message}
+                                </AlertDescription>
+                            )}
                         </Alert>
                     )}
                     {csrDetails && (
@@ -154,7 +157,7 @@ function App() {
                             <TableBody>
                                 <TableRow>
                                     <TableCell>Signature Algorithm</TableCell>
-                                    <TableCell>
+                                    <TableCell data-testid="signature-algorithm">
                                         {csrDetails.signatureAlgorithm}
                                         {csrDetails.signatureAlgorithmId !==
                                             csrDetails.signatureAlgorithm && (
@@ -164,7 +167,7 @@ function App() {
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Public Key Algorithm</TableCell>
-                                    <TableCell>
+                                    <TableCell data-testid="public-key-algorithm">
                                         {csrDetails.publicKeyAlgorithm}
                                         {csrDetails.publicKeyAlgorithmId !==
                                             csrDetails.publicKeyAlgorithm && (
@@ -175,55 +178,73 @@ function App() {
                                 {csrDetails.rsaKeyLength && (
                                     <TableRow>
                                         <TableCell>RSA Key Length</TableCell>
-                                        <TableCell>{csrDetails.rsaKeyLength}</TableCell>
+                                        <TableCell data-testid="rsa-key-length">
+                                            {csrDetails.rsaKeyLength}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.commonName && (
                                     <TableRow>
                                         <TableCell>Common Name</TableCell>
-                                        <TableCell>{csrDetails.commonName}</TableCell>
+                                        <TableCell data-testid="common-name">
+                                            {csrDetails.commonName}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.country && (
                                     <TableRow>
                                         <TableCell>Country</TableCell>
-                                        <TableCell>{csrDetails.country}</TableCell>
+                                        <TableCell data-testid="country">
+                                            {csrDetails.country}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.locality && (
                                     <TableRow>
                                         <TableCell>Locality</TableCell>
-                                        <TableCell>{csrDetails.locality}</TableCell>
+                                        <TableCell data-testid="locality">
+                                            {csrDetails.locality}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.stateOrProvince && (
                                     <TableRow>
                                         <TableCell>State or Province</TableCell>
-                                        <TableCell>{csrDetails.stateOrProvince}</TableCell>
+                                        <TableCell data-testid="state-or-province">
+                                            {csrDetails.stateOrProvince}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.organizationName && (
                                     <TableRow>
                                         <TableCell>Organization Name</TableCell>
-                                        <TableCell>{csrDetails.organizationName}</TableCell>
+                                        <TableCell data-testid="org-name">
+                                            {csrDetails.organizationName}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.organizationUnit && (
                                     <TableRow>
                                         <TableCell>Organization Unit</TableCell>
-                                        <TableCell>{csrDetails.organizationUnit}</TableCell>
+                                        <TableCell data-testid="org-unit">
+                                            {csrDetails.organizationUnit}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.subjectAlternativeName && (
                                     <TableRow>
                                         <TableCell>Subject Alternative Name</TableCell>
-                                        <TableCell>{csrDetails.subjectAlternativeName}</TableCell>
+                                        <TableCell data-testid="san">
+                                            {csrDetails.subjectAlternativeName}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                                 {csrDetails.emailAddress && (
                                     <TableRow>
                                         <TableCell>Email Address</TableCell>
-                                        <TableCell>{csrDetails.emailAddress}</TableCell>
+                                        <TableCell data-testid="email-address">
+                                            {csrDetails.emailAddress}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
