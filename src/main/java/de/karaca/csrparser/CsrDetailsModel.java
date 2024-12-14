@@ -1,26 +1,23 @@
 package de.karaca.csrparser;
 
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
 public class CsrDetailsModel {
     private final String issuer;
 
-    public CsrDetailsModel(String issuer) {
-        this.issuer = issuer;
-    }
+    private final String signatureAlgorithm;
+    private final String signatureAlgorithmId;
+    private final String publicKeyAlgorithm;
+    private final String publicKeyAlgorithmId;
 
-    public static Builder builder() {
-        return new Builder();
-    }
+    // boxed Integer because it should be nullable (not every key is an RSA key)
+    private final Integer rsaKeyLength;
 
-    public static class Builder {
-        private String issuer;
-
-        public Builder issuer(String issuer) {
-            this.issuer = issuer;
-            return this;
-        }
-
-        public CsrDetailsModel build() {
-            return new CsrDetailsModel(issuer);
-        }
-    }
+    private final String country;
+    private final String locality;
+    private final String stateOrProvince;
+    private final String organizationName;
 }

@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
@@ -19,20 +22,19 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ParserService {
-    private static final byte[] PEM_HEADER = "-----BEGIN CERTIFICATE REQUEST-----".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] PEM_FOOTER = "-----END CERTIFICATE REQUEST-----".getBytes(StandardCharsets.UTF_8);
+    private static final Charset PEM_CHARSET = StandardCharsets.US_ASCII;
+
+    private static final byte[] PEM_HEADER = "-----BEGIN CERTIFICATE REQUEST-----".getBytes(PEM_CHARSET);
+    private static final byte[] PEM_FOOTER = "-----END CERTIFICATE REQUEST-----".getBytes(PEM_CHARSET);
 
     private static final int PEM_MAX_LINE_LENGTH = 64;
 
-    public CsrDetailsModel parseBouncyCastle(byte[] bytes) {
-        PKCS10CertificationRequest req = readPKCS10(bytes);
-
-        DefaultAlgorithmNameFinder finder = new DefaultAlgorithmNameFinder();
-
+    public CsrDetailsModel parseWithBouncyCastle(byte[] bytes) {
         try {
-            System.out.println("Signature algorithm: " + finder.getAlgorithmName(req.getSignatureAlgorithm()));
-            System.out.println("                     "
-                    + req.getSignatureAlgorithm().getAlgorithm().toString());
+            PKCS10CertificationRequest req = readPKCS10(bytes);
+
+            DefaultAlgorithmNameFinder finder = new DefaultAlgorithmNameFinder();
+
             System.out.println(req.getSubject().toString());
 
             var countryId = new ASN1ObjectIdentifier("2.5.4.6");
@@ -40,49 +42,44 @@ public class ParserService {
             var stateOrProvinceId = new ASN1ObjectIdentifier("2.5.4.8");
             var organizationNameId = new ASN1ObjectIdentifier("2.5.4.10");
 
-            Arrays.stream(req.getSubject().getRDNs(countryId))
-                    .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
-                    .map(x -> x.getValue().toString())
-                    .map(x -> "Country: " + x)
-                    .forEach(System.out::println);
+            String country = getAttributeFromName(req.getSubject(), countryId);
+            String locality = getAttributeFromName(req.getSubject(), localityId);
+            String stateOrProvince = getAttributeFromName(req.getSubject(), stateOrProvinceId);
+            String organizationName = getAttributeFromName(req.getSubject(), organizationNameId);
 
-            Arrays.stream(req.getSubject().getRDNs(localityId))
-                    .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
-                    .map(x -> x.getValue().toString())
-                    .map(x -> "Locale: " + x)
-                    .forEach(System.out::println);
-
-            Arrays.stream(req.getSubject().getRDNs(stateOrProvinceId))
-                    .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
-                    .map(x -> x.getValue().toString())
-                    .map(x -> "State or Province: " + x)
-                    .forEach(System.out::println);
-
-            Arrays.stream(req.getSubject().getRDNs(organizationNameId))
-                    .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
-                    .map(x -> x.getValue().toString())
-                    .map(x -> "Organization: " + x)
-                    .forEach(System.out::println);
-
-            System.out.println("Public key algorithm: "
-                    + finder.getAlgorithmName(req.getSubjectPublicKeyInfo().getAlgorithm()));
-            System.out.println("                      "
-                    + req.getSubjectPublicKeyInfo()
+            var builder = CsrDetailsModel.builder()
+                    .signatureAlgorithm(finder.getAlgorithmName(req.getSignatureAlgorithm()))
+                    .signatureAlgorithmId(
+                            req.getSignatureAlgorithm().getAlgorithm().toString())
+                    .publicKeyAlgorithm(finder.getAlgorithmName(
+                            req.getSubjectPublicKeyInfo().getAlgorithm()))
+                    .publicKeyAlgorithmId(req.getSubjectPublicKeyInfo()
                             .getAlgorithm()
                             .getAlgorithm()
-                            .toString());
+                            .toString())
+                    .country(country)
+                    .locality(locality)
+                    .stateOrProvince(stateOrProvince)
+                    .organizationName(organizationName);
 
             AsymmetricKeyParameter keyParameter = PublicKeyFactory.createKey(req.getSubjectPublicKeyInfo());
 
             if (keyParameter instanceof RSAKeyParameters rsaKeyParameters) {
-                System.out.println(rsaKeyParameters.getModulus().bitLength());
+                builder.rsaKeyLength(rsaKeyParameters.getModulus().bitLength());
             }
+
+            return builder.build();
 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
 
-        return null;
+    public String getAttributeFromName(X500Name name, ASN1ObjectIdentifier attributeId) {
+        return Arrays.stream(name.getRDNs(attributeId))
+                .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
+                .map(attribute -> attribute.getValue().toString())
+                .collect(Collectors.joining(","));
     }
 
     public PKCS10CertificationRequest readPKCS10(byte[] bytes) {

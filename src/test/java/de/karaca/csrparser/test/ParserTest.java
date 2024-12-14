@@ -16,7 +16,7 @@ public class ParserTest {
     @Test
     void test() throws Exception {
         try (InputStream inputStream = new FileInputStream("src/test/resources/req.csr")) {
-            CsrDetailsModel model = parserService.parseBouncyCastle(inputStream.readAllBytes());
+            CsrDetailsModel model = parserService.parseWithBouncyCastle(inputStream.readAllBytes());
         }
     }
 }
