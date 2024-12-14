@@ -1,5 +1,7 @@
-package de.karaca.csrparser;
+package de.karaca.csrparser.service;
 
+import de.karaca.csrparser.exception.InvalidCsrException;
+import de.karaca.csrparser.model.CsrDetailsModel;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -35,17 +38,23 @@ public class ParserService {
 
             DefaultAlgorithmNameFinder finder = new DefaultAlgorithmNameFinder();
 
-            System.out.println(req.getSubject().toString());
-
+            var commonNameId = new ASN1ObjectIdentifier("2.5.4.3");
             var countryId = new ASN1ObjectIdentifier("2.5.4.6");
             var localityId = new ASN1ObjectIdentifier("2.5.4.7");
             var stateOrProvinceId = new ASN1ObjectIdentifier("2.5.4.8");
             var organizationNameId = new ASN1ObjectIdentifier("2.5.4.10");
+            var organizationUnitId = new ASN1ObjectIdentifier("2.5.4.11");
+            var dnQualifierId = new ASN1ObjectIdentifier("2.5.4.46");
+            var emailAddressId = PKCSObjectIdentifiers.pkcs_9_at_emailAddress;
 
+            String commonName = getAttributeFromName(req.getSubject(), commonNameId);
             String country = getAttributeFromName(req.getSubject(), countryId);
             String locality = getAttributeFromName(req.getSubject(), localityId);
             String stateOrProvince = getAttributeFromName(req.getSubject(), stateOrProvinceId);
             String organizationName = getAttributeFromName(req.getSubject(), organizationNameId);
+            String organizationUnit = getAttributeFromName(req.getSubject(), organizationUnitId);
+            String dnQualifier = getAttributeFromName(req.getSubject(), dnQualifierId);
+            String emailAddress = getAttributeFromName(req.getSubject(), emailAddressId);
 
             var builder = CsrDetailsModel.builder()
                     .signatureAlgorithm(finder.getAlgorithmName(req.getSignatureAlgorithm()))
@@ -57,10 +66,14 @@ public class ParserService {
                             .getAlgorithm()
                             .getAlgorithm()
                             .toString())
+                    .commonName(commonName)
                     .country(country)
                     .locality(locality)
                     .stateOrProvince(stateOrProvince)
-                    .organizationName(organizationName);
+                    .organizationName(organizationName)
+                    .organizationUnit(organizationUnit)
+                    .dnQualifier(dnQualifier)
+                    .emailAddress(emailAddress);
 
             AsymmetricKeyParameter keyParameter = PublicKeyFactory.createKey(req.getSubjectPublicKeyInfo());
 
@@ -76,14 +89,21 @@ public class ParserService {
     }
 
     public String getAttributeFromName(X500Name name, ASN1ObjectIdentifier attributeId) {
-        return Arrays.stream(name.getRDNs(attributeId))
+        String result = Arrays.stream(name.getRDNs(attributeId))
                 .flatMap(rdn -> Arrays.stream(rdn.getTypesAndValues()))
                 .map(attribute -> attribute.getValue().toString())
                 .collect(Collectors.joining(","));
+
+        if (result == null || result.isBlank()) {
+            return null;
+        }
+
+        return result;
     }
 
     public PKCS10CertificationRequest readPKCS10(byte[] bytes) {
-        if (Arrays.equals(bytes, 0, PEM_HEADER.length, PEM_HEADER, 0, PEM_HEADER.length)) {
+        if (bytes.length >= PEM_HEADER.length
+                && Arrays.equals(bytes, 0, PEM_HEADER.length, PEM_HEADER, 0, PEM_HEADER.length)) {
             // file is in PEM format
 
             String csr = new String(bytes, StandardCharsets.US_ASCII);
@@ -91,8 +111,7 @@ public class ParserService {
             try (PEMParser parser = new PEMParser(new StringReader(csr))) {
                 return (PKCS10CertificationRequest) parser.readObject();
             } catch (IOException e) {
-                // TODO: throw bad request
-                throw new UncheckedIOException(e);
+                throw new InvalidCsrException("File is not a valid Certificate Signing Request", e);
             }
         }
 
@@ -100,8 +119,7 @@ public class ParserService {
             // file is in DER format
             return new PKCS10CertificationRequest(bytes);
         } catch (IOException e) {
-            // TODO: throw bad request
-            throw new UncheckedIOException(e);
+            throw new InvalidCsrException("File is not a valid Certificate Signing Request", e);
         }
     }
 

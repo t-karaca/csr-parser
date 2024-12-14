@@ -1,11 +1,13 @@
-package de.karaca.csrparser;
+package de.karaca.csrparser.controller;
 
+import de.karaca.csrparser.model.CsrDetailsModel;
+import de.karaca.csrparser.service.ParserService;
 import java.io.IOException;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -18,7 +20,9 @@ public class CsrController {
     }
 
     @PostMapping("/csr")
-    public CsrDetailsModel parseCsr(@RequestBody MultipartFile file) throws IOException {
-        return parserService.parseWithBouncyCastle(file.getBytes());
+    public CsrDetailsModel parseCsr(@RequestBody Resource file) throws IOException {
+        // reading files into a byte array is not really efficient but we are not expecting large files
+        // and BouncyCastle requires a byte[] for DER and String for PEM anyway
+        return parserService.parseWithBouncyCastle(file.getContentAsByteArray());
     }
 }
