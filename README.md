@@ -13,6 +13,10 @@ Some test files created with OpenSSL are available at `src/test/resources`.
 
 Swagger UI is available at http://localhost:8080/api/v1/swagger-ui
 
+## Implementation
+
+
+
 ## Gradle Build
 
 ### Requirements
@@ -64,3 +68,12 @@ The logs directory can also be mounted to the container so the log files are per
 ```bash
 docker run -v ./logs/:/app/logs/ -p 8080:8080 csr-parser:latest
 ```
+
+## References
+
+- https://letsencrypt.org/de/docs/a-warm-welcome-to-asn1-and-der/
+- https://luca.ntop.org/Teaching/Appunti/asn1.html
+- https://datatracker.ietf.org/doc/html/rfc5280
+- https://datatracker.ietf.org/doc/html/rfc2986
+- https://datatracker.ietf.org/doc/html/rfc3279
+- https://gist.github.com/mattifestation/5bdcdbadfc4070f9191705853c5481da

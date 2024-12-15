@@ -19,8 +19,21 @@ public class CsrController {
         this.parserService = parserService;
     }
 
+    /**
+     * Parse CSR with BouncyCastle
+     **/
     @PostMapping("/csr")
     public CsrDetailsModel parseCsr(@RequestBody Resource file) throws IOException {
+        // reading files into a byte array is not really efficient but we are not expecting large files
+        // and BouncyCastle requires a byte[] for DER and String for PEM anyway
+        return parserService.parseWithBouncyCastle(file.getContentAsByteArray());
+    }
+
+    /**
+     * Parse CSR with custom parser
+     **/
+    @PostMapping("/csr-custom")
+    public CsrDetailsModel parseCsrCustom(@RequestBody Resource file) throws IOException {
         // reading files into a byte array is not really efficient but we are not expecting large files
         // and BouncyCastle requires a byte[] for DER and String for PEM anyway
         return parserService.parseWithBouncyCastle(file.getContentAsByteArray());
