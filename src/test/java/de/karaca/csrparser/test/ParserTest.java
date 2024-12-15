@@ -8,6 +8,8 @@ import de.karaca.csrparser.model.CsrDetailsModel;
 import de.karaca.csrparser.service.ParserService;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.HexFormat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +18,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class ParserTest {
     @Autowired
     ParserService parserService;
+
+    @Test
+    void testCustom() throws Exception {
+        // try (InputStream inputStream = new FileInputStream("src/test/resources/rsa-csr.pem")) {
+        // try (InputStream inputStream = new FileInputStream("src/test/resources/rsa-csr-san.pem")) {
+        // try (InputStream inputStream = new FileInputStream("src/test/resources/rsa-csr-small.pem")) {
+        try (InputStream inputStream = new FileInputStream("src/test/resources/ecdsa-csr.pem")) {
+            parserService.parse(inputStream.readAllBytes());
+        }
+    }
+
+    @Test
+    void testOID() {
+        byte[] bytes = HexFormat.of().parseHex("2a864886f70d01010b");
+        String oid = parserService.readOID(ByteBuffer.wrap(bytes), bytes.length);
+        assertThat(oid).isEqualTo("1.2.840.113549.1.1.11");
+    }
 
     @Test
     void testPEM() throws Exception {
