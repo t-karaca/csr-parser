@@ -21,6 +21,7 @@ WORKDIR /app
 RUN mkdir /app/logs \
     && addgroup -g 1000 unprivileged \
     && adduser -u 1000 -G unprivileged -D -H -s /sbin/nologin unprivileged \
+    && chown -R unprivileged:unprivileged /app/logs \
     && rm /bin/sh \
     && rm /bin/ash \
     && rm /sbin/apk \
