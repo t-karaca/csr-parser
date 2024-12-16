@@ -1,7 +1,8 @@
 package de.karaca.csrparser.controller;
 
 import de.karaca.csrparser.model.CsrDetailsModel;
-import de.karaca.csrparser.service.ParserService;
+import de.karaca.csrparser.service.BouncyCastleParserService;
+import de.karaca.csrparser.service.CustomParserService;
 import java.io.IOException;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class CsrController {
 
-    private final ParserService parserService;
+    private final BouncyCastleParserService bouncyCastleParserService;
+    private final CustomParserService customParserService;
 
-    public CsrController(ParserService parserService) {
-        this.parserService = parserService;
+    public CsrController(BouncyCastleParserService bouncyCastleParserService, CustomParserService customParserService) {
+        this.bouncyCastleParserService = bouncyCastleParserService;
+        this.customParserService = customParserService;
     }
 
     /**
@@ -26,7 +29,7 @@ public class CsrController {
     public CsrDetailsModel parseCsr(@RequestBody Resource file) throws IOException {
         // reading files into a byte array is not really efficient but we are not expecting large files
         // and BouncyCastle requires a byte[] for DER and String for PEM anyway
-        return parserService.parseWithBouncyCastle(file.getContentAsByteArray());
+        return bouncyCastleParserService.parse(file.getContentAsByteArray());
     }
 
     /**
@@ -34,8 +37,6 @@ public class CsrController {
      **/
     @PostMapping("/csr-custom")
     public CsrDetailsModel parseCsrCustom(@RequestBody Resource file) throws IOException {
-        // reading files into a byte array is not really efficient but we are not expecting large files
-        // and BouncyCastle requires a byte[] for DER and String for PEM anyway
-        return parserService.parseWithBouncyCastle(file.getContentAsByteArray());
+        return customParserService.parse(file.getContentAsByteArray());
     }
 }

@@ -77,8 +77,10 @@ function App() {
         }
 
         async function request() {
+            const url = isCustomParser ? "/api/v1/csr-custom" : "/api/v1/csr";
+
             try {
-                const response = await fetch("/api/v1/csr", { method: "POST", body: file });
+                const response = await fetch(url, { method: "POST", body: file });
                 const json = await response.json();
 
                 if (response.ok) {
@@ -180,6 +182,14 @@ function App() {
                                         <TableCell>RSA Key Length</TableCell>
                                         <TableCell data-testid="rsa-key-length">
                                             {csrDetails.rsaKeyLength}
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {csrDetails.ecCurve && (
+                                    <TableRow>
+                                        <TableCell>EC Curve</TableCell>
+                                        <TableCell data-testid="ec-curve">
+                                            {csrDetails.ecCurve}
                                         </TableCell>
                                     </TableRow>
                                 )}

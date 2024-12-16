@@ -15,6 +15,7 @@ public class CsrDetailsModel {
 
     // boxed Integer because it should be nullable (not every key is an RSA key)
     private final Integer rsaKeyLength;
+    private final String ecCurve;
 
     private final String commonName;
     private final String country;

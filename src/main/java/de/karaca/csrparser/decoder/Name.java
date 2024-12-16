@@ -17,4 +17,8 @@ public class Name {
     public Map<String, String> getAttributes() {
         return attributes;
     }
+
+    public String getAttribute(String identifier) {
+        return attributes.get(identifier);
+    }
 }

@@ -17,7 +17,6 @@ public final class ObjectIdentifiers {
 
     public static final String ext_subjectAlternativeName = "2.5.29.17";
 
-    // parameter must be NULL
     public static final String md2WithRSAEncryption = "1.2.840.113549.1.1.2";
     public static final String md5WithRSAEncryption = "1.2.840.113549.1.1.4";
     public static final String sha1WithRSAEncryption = "1.2.840.113549.1.1.5";
@@ -28,11 +27,9 @@ public final class ObjectIdentifiers {
     public static final String sha512_224WithRSAEncryption = "1.2.840.113549.1.1.15";
     public static final String sha512_256WithRSAEncryption = "1.2.840.113549.1.1.16";
 
-    // parameter is omitted
     // id-dsa-with-sha1
     public static final String idDSAWithSha1 = "1.2.840.10040.4.3";
 
-    // parameter is omitted
     public static final String ecdsaPrefix = "1.2.840.10045.4";
     // ecdsa-with-SHA1
     public static final String ecdsaWithSHA1 = "1.2.840.10045.4.1";
@@ -60,6 +57,19 @@ public final class ObjectIdentifiers {
     // id-ecPublicKey
     public static final String EC = "1.2.840.10045.2.1";
 
+    /**
+     * In DER encoding there are optionally parameters in an ASN.1 AlgorithmIdentifier.
+     *
+     * On public key algorithms these are set with specific parameters.
+     *
+     * On signature algorithms these are null or empty.
+     * If it is empty the AlgorithmIdentifier SEQUENCE ends after the OBJECT IDENTIFIER.
+     * If null, it is encoded explicitly as ASN.1 NULL (0x05 0x00)
+     *
+     * This is used to check if we have to read parameters or the next ASN.1 Object starts.
+     *
+     * @return true if there are no parameters encoded for this algorithm identifier, otherwise false
+     **/
     public static boolean isParameterOmitted(String objectIdentifier) {
         switch (objectIdentifier) {
             case idDSAWithSha1:
@@ -77,5 +87,55 @@ public final class ObjectIdentifiers {
         }
 
         return false;
+    }
+
+    public static String getAlgorithmName(String algorithmId) {
+        switch (algorithmId) {
+            case RSA:
+                return "rsaEncryption";
+            case DSA:
+                return "id-dsa";
+            case DH:
+                return "dhpublicnumber";
+            case KEA:
+                return "id-keyExchangeAlgorithm";
+            case EC:
+                return "id-ecPublicKey";
+
+            case md2WithRSAEncryption:
+                return "md2WithRSAEncryption";
+            case md5WithRSAEncryption:
+                return "md5WithRSAEncryption";
+            case sha1WithRSAEncryption:
+                return "sha1WithRSAEncryption";
+            case sha224WithRSAEncryption:
+                return "sha224WithRSAEncryption";
+            case sha256WithRSAEncryption:
+                return "sha256WithRSAEncryption";
+            case sha384WithRSAEncryption:
+                return "sha384WithRSAEncryption";
+            case sha512WithRSAEncryption:
+                return "sha512WithRSAEncryption";
+            case sha512_224WithRSAEncryption:
+                return "sha512-224WithRSAEncryption";
+            case sha512_256WithRSAEncryption:
+                return "sha512-256WithRSAEncryption";
+
+            case idDSAWithSha1:
+                return "id-dsa-with-sha1";
+
+            case ecdsaWithSHA1:
+                return "ecdsa-with-SHA1";
+            case ecdsaWithSHA224:
+                return "ecdsa-with-SHA224";
+            case ecdsaWithSHA256:
+                return "ecdsa-with-SHA256";
+            case ecdsaWithSHA384:
+                return "ecdsa-with-SHA384";
+            case ecdsaWithSHA512:
+                return "ecdsa-with-SHA512";
+        }
+
+        return algorithmId;
     }
 }

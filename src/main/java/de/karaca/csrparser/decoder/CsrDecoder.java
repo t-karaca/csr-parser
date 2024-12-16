@@ -51,7 +51,7 @@ public class CsrDecoder {
     /**
      * Decode a PKCS#10 CertificationRequest from the given buffer.
      **/
-    public CertificationRequest decode() {
+    public CertificationRequest decodeCertificationRequest() {
         expectTag(TAG_SEQUENCE);
         readLength();
 
@@ -115,6 +115,7 @@ public class CsrDecoder {
                 .version(version)
                 .name(name)
                 .subjectPublicKeyInfo(subjectPublicKeyInfo)
+                .attributes(attributes)
                 .build();
     }
 
@@ -168,11 +169,13 @@ public class CsrDecoder {
         return id;
     }
 
-    private Object decodeExtensions() {
+    private Extensions decodeExtensions() {
         expectTag(TAG_SEQUENCE);
 
         int length = readLength();
         int end = buffer.position() + length;
+
+        Extensions extensions = new Extensions();
 
         while (buffer.position() < end) {
             expectTag(TAG_SEQUENCE);
@@ -197,11 +200,9 @@ public class CsrDecoder {
             int extensionLength = readLength();
 
             switch (extensionId) {
-                case ObjectIdentifiers.ext_subjectAlternativeName: {
-                    var names = decodeGeneralNames();
-                    log.info("{}", names);
+                case ObjectIdentifiers.ext_subjectAlternativeName:
+                    extensions.getEntries().add(extensionId, decodeGeneralNames());
                     break;
-                }
                 default:
                     // skip unknown extension
                     buffer.position(buffer.position() + extensionLength);
@@ -209,7 +210,7 @@ public class CsrDecoder {
             }
         }
 
-        return null;
+        return extensions;
     }
 
     private List<GeneralName> decodeGeneralNames() {
@@ -314,7 +315,12 @@ public class CsrDecoder {
         return bytes;
     }
 
-    private String decodeObjectIdentifier() {
+    /**
+     * Decode an OBJECT IDENTIFIER from the given buffer.
+     *
+     * @return ASN.1 Object Identifier as a {@link java.lang.String}
+     **/
+    public String decodeObjectIdentifier() {
         expectTag(TAG_OBJECT_IDENTIFIER);
 
         int length = readLength();
@@ -408,6 +414,7 @@ public class CsrDecoder {
 
             // AttributeType
             String type = decodeObjectIdentifier();
+            // AttributeValue
             String value = decodeString();
 
             name.getAttributes().put(type, value);

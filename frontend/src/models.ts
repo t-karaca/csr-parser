@@ -7,6 +7,7 @@ export interface CsrDetailsModel {
     publicKeyAlgorithmId: string;
 
     rsaKeyLength?: number;
+    ecCurve?: string;
 
     commonName?: string;
     country?: string;

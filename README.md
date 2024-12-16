@@ -15,7 +15,14 @@ Swagger UI is available at http://localhost:8080/api/v1/swagger-ui
 
 ## Implementation
 
+There are two parsers available which can be toggled on the frontend.
 
+The BouncyCastle Parser uses the BouncyCastle library to extract information from the CSR.
+
+The Custom Parser is a custom implementation of a DER decoder for CSRs.
+The code is available under the package `de.karaca.csrparser.decoder`.
+
+There are Unit Tests for both parsers in `BouncyCastleParserTest` and `CustomParserTest`.
 
 ## Gradle Build
 
