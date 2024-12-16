@@ -20,7 +20,7 @@ There are two parsers available which can be toggled on the frontend.
 The BouncyCastle Parser uses the BouncyCastle library to extract information from the CSR.
 
 The Custom Parser is a custom implementation of a DER decoder for CSRs.
-The code is available under the package `de.karaca.csrparser.decoder`.
+The code is available in the package `de.karaca.csrparser.decoder`.
 
 There are Unit Tests for both parsers in `BouncyCastleParserTest` and `CustomParserTest`.
 
@@ -75,6 +75,25 @@ The logs directory can also be mounted to the container so the log files are per
 ```bash
 docker run -v ./logs/:/app/logs/ -p 8080:8080 csr-parser:latest
 ```
+
+## End-to-end tests
+
+For E2E-Testing Playwright is used.
+The tests can be run headless with a final HTML Report or in UI mode.
+
+For headless tests:
+
+```bash
+npm run e2e
+```
+
+To start the playwright UI:
+
+```bash
+npm run e2e-ui
+```
+
+These commands need to be run inside the `frontend/` subdirectory (where the `package.json` is located).
 
 ## References
 
